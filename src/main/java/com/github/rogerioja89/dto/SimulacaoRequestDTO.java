@@ -5,23 +5,35 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
-// DTO (Data Transfer Object) que representa o JSON de entrada do POST /simulacoes.
-// As anotações @NotNull, @Positive e @NotBlank são do Hibernate Validator e
-// serão checadas automaticamente pelo Quarkus antes de entrar no Resource.
 public class SimulacaoRequestDTO {
 
     @NotNull(message = "clienteId é obrigatório")
     @Positive(message = "clienteId deve ser um número positivo")
-    public Long clienteId;
+    private Long clienteId;
 
     @NotNull(message = "valor é obrigatório")
     @Positive(message = "valor deve ser positivo")
-    public BigDecimal valor;
+    private BigDecimal valor;
 
     @NotNull(message = "prazoMeses é obrigatório")
     @Positive(message = "prazoMeses deve ser positivo")
-    public Integer prazoMeses;
+    private Integer prazoMeses;
 
     @NotBlank(message = "tipoProduto é obrigatório")
-    public String tipoProduto;
+    private String tipoProduto;
+
+    public SimulacaoRequestDTO() {
+    }
+
+    public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+
+    public BigDecimal getValor() { return valor; }
+    public void setValor(BigDecimal valor) { this.valor = valor; }
+
+    public Integer getPrazoMeses() { return prazoMeses; }
+    public void setPrazoMeses(Integer prazoMeses) { this.prazoMeses = prazoMeses; }
+
+    public String getTipoProduto() { return tipoProduto; }
+    public void setTipoProduto(String tipoProduto) { this.tipoProduto = tipoProduto; }
 }

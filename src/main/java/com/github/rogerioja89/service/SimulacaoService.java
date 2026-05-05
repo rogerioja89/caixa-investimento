@@ -20,10 +20,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// Camada de negócio: aqui ficam as regras da aplicação.
-// O Resource (controller) chama o Service, que por sua vez usa os Repositories.
-// @Transactional garante que todas as operações de banco dentro do método
-// sejam tratadas como uma única transação (tudo salva ou tudo reverte).
 @ApplicationScoped
 public class SimulacaoService {
 
@@ -38,9 +34,8 @@ public class SimulacaoService {
 
     @Transactional
     public SimulacaoResponseDTO simular(SimulacaoRequestDTO request) {
-        // 1. Busca um produto elegível no banco
         Produto produto = produtoRepository
-            .findElegivel(request.tipoProduto, request.valor, request.prazoMeses)
+            .findElegivel(request.getTipoProduto(), request.getValor(), request.getPrazoMeses())
             .orElseThrow(() -> new WebApplicationException(
                 Response.status(422)
                         .type(MediaType.APPLICATION_JSON)
@@ -48,25 +43,23 @@ public class SimulacaoService {
                         .build()
             ));
 
-        // 2. Calcula o valor final: valorFinal = valor * (1 + rentabilidadeAnual/12) ^ prazoMeses
         BigDecimal valorFinal = calcularValorFinal(
-            request.valor, produto.rentabilidadeAnual, request.prazoMeses
+            request.getValor(), produto.getRentabilidadeAnual(), request.getPrazoMeses()
         );
 
-        // 3. Cria e persiste o registro da simulação
-        Simulacao simulacao = new Simulacao();
-        simulacao.clienteId = request.clienteId;
-        simulacao.produtoNome = produto.nome;
-        simulacao.tipoProduto = produto.tipoProduto;
-        simulacao.valorInvestido = request.valor;
-        simulacao.prazoMeses = request.prazoMeses;
-        simulacao.rentabilidadeAplicada = produto.rentabilidadeAnual;
-        simulacao.valorFinal = valorFinal;
-        simulacao.dataSimulacao = LocalDateTime.now();
+        Simulacao simulacao = new Simulacao(
+            request.getClienteId(),
+            produto.getNome(),
+            produto.getTipoProduto(),
+            request.getValor(),
+            request.getPrazoMeses(),
+            produto.getRentabilidadeAnual(),
+            valorFinal,
+            LocalDateTime.now()
+        );
 
         simulacaoRepository.persist(simulacao);
 
-        // 4. Monta e retorna o DTO de resposta
         return simulacaoMapper.toResponseDTO(simulacao, produto);
     }
 
@@ -77,9 +70,6 @@ public class SimulacaoService {
             .toList();
     }
 
-    // Fórmula de juros compostos mensais
-    // taxaMensal = rentabilidadeAnual / 12
-    // valorFinal = valor * (1 + taxaMensal) ^ prazoMeses
     private BigDecimal calcularValorFinal(BigDecimal valor, BigDecimal rentabilidadeAnual, int prazoMeses) {
         BigDecimal taxaMensal = rentabilidadeAnual.divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
         BigDecimal fator = BigDecimal.ONE.add(taxaMensal).pow(prazoMeses, MathContext.DECIMAL128);
