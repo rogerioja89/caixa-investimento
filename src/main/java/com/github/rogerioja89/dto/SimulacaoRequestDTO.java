@@ -3,8 +3,10 @@ package com.github.rogerioja89.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Data;
 import java.math.BigDecimal;
 
+@Data
 public class SimulacaoRequestDTO {
 
     @NotNull(message = "clienteId é obrigatório")
@@ -21,19 +23,4 @@ public class SimulacaoRequestDTO {
 
     @NotBlank(message = "tipoProduto é obrigatório")
     private String tipoProduto;
-
-    public SimulacaoRequestDTO() {
-    }
-
-    public Long getClienteId() { return clienteId; }
-    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
-
-    public BigDecimal getValor() { return valor; }
-    public void setValor(BigDecimal valor) { this.valor = valor; }
-
-    public Integer getPrazoMeses() { return prazoMeses; }
-    public void setPrazoMeses(Integer prazoMeses) { this.prazoMeses = prazoMeses; }
-
-    public String getTipoProduto() { return tipoProduto; }
-    public void setTipoProduto(String tipoProduto) { this.tipoProduto = tipoProduto; }
 }

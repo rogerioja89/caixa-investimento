@@ -2,8 +2,14 @@ package com.github.rogerioja89.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.math.BigDecimal;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "produtos")
 public class Produto extends PanacheEntityBase {
@@ -36,9 +42,6 @@ public class Produto extends PanacheEntityBase {
     @Column(name = "valor_max", nullable = false, precision = 15, scale = 2)
     private BigDecimal valorMax;
 
-    public Produto() {
-    }
-
     public Produto(String nome, String tipoProduto, BigDecimal rentabilidadeAnual, String risco,
                    Integer prazoMinMeses, Integer prazoMaxMeses, BigDecimal valorMin, BigDecimal valorMax) {
         this.nome = nome;
@@ -50,31 +53,4 @@ public class Produto extends PanacheEntityBase {
         this.valorMin = valorMin;
         this.valorMax = valorMax;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getTipoProduto() { return tipoProduto; }
-    public void setTipoProduto(String tipoProduto) { this.tipoProduto = tipoProduto; }
-
-    public BigDecimal getRentabilidadeAnual() { return rentabilidadeAnual; }
-    public void setRentabilidadeAnual(BigDecimal rentabilidadeAnual) { this.rentabilidadeAnual = rentabilidadeAnual; }
-
-    public String getRisco() { return risco; }
-    public void setRisco(String risco) { this.risco = risco; }
-
-    public Integer getPrazoMinMeses() { return prazoMinMeses; }
-    public void setPrazoMinMeses(Integer prazoMinMeses) { this.prazoMinMeses = prazoMinMeses; }
-
-    public Integer getPrazoMaxMeses() { return prazoMaxMeses; }
-    public void setPrazoMaxMeses(Integer prazoMaxMeses) { this.prazoMaxMeses = prazoMaxMeses; }
-
-    public BigDecimal getValorMin() { return valorMin; }
-    public void setValorMin(BigDecimal valorMin) { this.valorMin = valorMin; }
-
-    public BigDecimal getValorMax() { return valorMax; }
-    public void setValorMax(BigDecimal valorMax) { this.valorMax = valorMax; }
 }
