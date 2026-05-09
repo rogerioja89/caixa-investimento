@@ -8,6 +8,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+// @Getter/@Setter sem @Data: @Data geraria equals/hashCode em todos os campos,
+// o que causa comportamento incorreto com os proxies lazy do Hibernate.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,6 +45,7 @@ public class Simulacao extends PanacheEntityBase {
     @Column(name = "data_simulacao", nullable = false)
     private LocalDateTime dataSimulacao;
 
+    // id omitido: gerado automaticamente pelo banco via @GeneratedValue.
     public Simulacao(Long clienteId, String produtoNome, String tipoProduto, BigDecimal valorInvestido,
                      Integer prazoMeses, BigDecimal rentabilidadeAplicada, BigDecimal valorFinal,
                      LocalDateTime dataSimulacao) {

@@ -17,6 +17,7 @@ public class DataSeeder {
 
     @Transactional
     void onStart(@Observes StartupEvent event) {
+        // Idempotente: o banco SQLite persiste entre restarts; só popula se ainda estiver vazio.
         if (produtoRepository.count() > 0) {
             return;
         }

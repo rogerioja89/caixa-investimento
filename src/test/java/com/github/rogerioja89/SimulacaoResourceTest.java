@@ -9,7 +9,7 @@ import static org.hamcrest.Matchers.*;
 
 // @QuarkusTest sobe a aplicação completa em modo de teste.
 // O banco H2 em memória é usado (configurado em application.properties com prefixo %test).
-// O import.sql é executado automaticamente, populando os produtos.
+// O DataSeeder popula os produtos automaticamente ao detectar a tabela vazia.
 @QuarkusTest
 class SimulacaoResourceTest {
 

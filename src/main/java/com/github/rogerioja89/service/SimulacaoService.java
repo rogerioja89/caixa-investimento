@@ -32,11 +32,13 @@ public class SimulacaoService {
     @Inject
     SimulacaoMapper simulacaoMapper;
 
+    // @Transactional: leitura do produto e gravação da simulação devem ocorrer na mesma transação.
     @Transactional
     public SimulacaoResponseDTO simular(SimulacaoRequestDTO request) {
         Produto produto = produtoRepository
             .findElegivel(request.getTipoProduto(), request.getValor(), request.getPrazoMeses())
             .orElseThrow(() -> new WebApplicationException(
+                // 422 Unprocessable Entity: dados válidos, mas nenhum produto atende os critérios informados.
                 Response.status(422)
                         .type(MediaType.APPLICATION_JSON)
                         .entity("{\"erro\": \"Nenhum produto elegível encontrado para os parâmetros informados\"}")
@@ -70,8 +72,10 @@ public class SimulacaoService {
             .toList();
     }
 
+    // Juros compostos mensais: valorFinal = valor × (1 + rentabilidadeAnual/12) ^ prazoMeses
     private BigDecimal calcularValorFinal(BigDecimal valor, BigDecimal rentabilidadeAnual, int prazoMeses) {
         BigDecimal taxaMensal = rentabilidadeAnual.divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+        // DECIMAL128 mantém precisão suficiente durante a exponenciação com BigDecimal.
         BigDecimal fator = BigDecimal.ONE.add(taxaMensal).pow(prazoMeses, MathContext.DECIMAL128);
         return valor.multiply(fator).setScale(2, RoundingMode.HALF_UP);
     }

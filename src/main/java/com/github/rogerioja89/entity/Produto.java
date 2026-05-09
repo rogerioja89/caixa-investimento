@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
 
+// @Getter/@Setter sem @Data: @Data geraria equals/hashCode em todos os campos,
+// o que causa comportamento incorreto com os proxies lazy do Hibernate.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -42,6 +44,7 @@ public class Produto extends PanacheEntityBase {
     @Column(name = "valor_max", nullable = false, precision = 15, scale = 2)
     private BigDecimal valorMax;
 
+    // id omitido: gerado automaticamente pelo banco via @GeneratedValue.
     public Produto(String nome, String tipoProduto, BigDecimal rentabilidadeAnual, String risco,
                    Integer prazoMinMeses, Integer prazoMaxMeses, BigDecimal valorMin, BigDecimal valorMax) {
         this.nome = nome;
