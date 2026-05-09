@@ -89,7 +89,6 @@ class SimulacaoResourceTest {
     void deveBuscarHistoricoDoCliente() {
         Long clienteId = 999L;
 
-        // Cria uma simulação para o clienteId 999
         given()
             .contentType(ContentType.JSON)
             .body("""
@@ -105,7 +104,6 @@ class SimulacaoResourceTest {
         .then()
             .statusCode(201);
 
-        // Verifica que o histórico retorna pelo menos 1 item
         given()
             .queryParam("clienteId", clienteId)
         .when()
@@ -114,5 +112,109 @@ class SimulacaoResourceTest {
             .statusCode(200)
             .body("size()", greaterThanOrEqualTo(1))
             .body("[0].clienteId", equalTo(999));
+    }
+
+    // Cliente sem nenhuma simulação deve retornar lista vazia, não erro
+    @Test
+    void deveRetornarListaVaziaParaClienteSemHistorico() {
+        given()
+            .queryParam("clienteId", 99999)
+        .when()
+            .get("/simulacoes")
+        .then()
+            .statusCode(200)
+            .body("size()", equalTo(0));
+    }
+
+    // CDB Caixa 2026: 12% a.a., R$ 10.000,00, 12 meses → valorFinal = 10000 × (1,01)^12 = R$ 11.268,25
+    @Test
+    void deveCalcularValorFinalCorreto() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                    "clienteId": 777,
+                    "valor": 10000.00,
+                    "prazoMeses": 12,
+                    "tipoProduto": "CDB"
+                }
+                """)
+        .when()
+            .post("/simulacoes")
+        .then()
+            .statusCode(201)
+            .body("resultadoSimulacao.valorFinal", equalTo(11268.25f));
+    }
+
+    // Valor e prazo exatamente nos limites do produto devem ser aceitos (boundary inclusive)
+    @Test
+    void deveAceitarSimulacaoNosLimitesDoRangeDoProduto() {
+        // Valor mínimo e prazo mínimo do CDB Caixa 2026 (R$ 1.000, 6 meses)
+        given()
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                    "clienteId": 555,
+                    "valor": 1000.00,
+                    "prazoMeses": 6,
+                    "tipoProduto": "CDB"
+                }
+                """)
+        .when()
+            .post("/simulacoes")
+        .then()
+            .statusCode(201);
+
+        // Valor máximo e prazo máximo do CDB Caixa 2026 (R$ 100.000, 24 meses)
+        given()
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                    "clienteId": 555,
+                    "valor": 100000.00,
+                    "prazoMeses": 24,
+                    "tipoProduto": "CDB"
+                }
+                """)
+        .when()
+            .post("/simulacoes")
+        .then()
+            .statusCode(201);
+    }
+
+    // Valor fora do range do produto deve retornar 422
+    @Test
+    void deveRetornar422QuandoValorForaDoRangeDoProduto() {
+        // Abaixo do mínimo do CDB Caixa 2026 (mínimo R$ 1.000,00)
+        given()
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                    "clienteId": 666,
+                    "valor": 999.99,
+                    "prazoMeses": 12,
+                    "tipoProduto": "CDB"
+                }
+                """)
+        .when()
+            .post("/simulacoes")
+        .then()
+            .statusCode(422);
+
+        // Acima do máximo de todos os produtos CDB (CDB Poupança Plus tem max R$ 500.000,00)
+        given()
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                    "clienteId": 666,
+                    "valor": 500000.01,
+                    "prazoMeses": 12,
+                    "tipoProduto": "CDB"
+                }
+                """)
+        .when()
+            .post("/simulacoes")
+        .then()
+            .statusCode(422);
     }
 }
