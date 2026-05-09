@@ -3,6 +3,7 @@ package com.github.rogerioja89.resource;
 import com.github.rogerioja89.dto.SimulacaoHistoricoDTO;
 import com.github.rogerioja89.dto.SimulacaoRequestDTO;
 import com.github.rogerioja89.dto.SimulacaoResponseDTO;
+import com.github.rogerioja89.exception.NegocioException;
 import com.github.rogerioja89.service.SimulacaoService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,12 +31,7 @@ public class SimulacaoResource {
     public List<SimulacaoHistoricoDTO> historico(@QueryParam("clienteId") Long clienteId) {
         // @Valid não cobre @QueryParam — Quarkus só valida automaticamente o corpo da requisição.
         if (clienteId == null) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST)
-                        .type(MediaType.APPLICATION_JSON)
-                        .entity("{\"erro\": \"O parâmetro clienteId é obrigatório\"}")
-                        .build()
-            );
+            throw new NegocioException(400, "O parâmetro clienteId é obrigatório");
         }
         return simulacaoService.buscarHistorico(clienteId);
     }

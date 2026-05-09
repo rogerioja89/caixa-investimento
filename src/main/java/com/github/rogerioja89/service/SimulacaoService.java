@@ -5,15 +5,13 @@ import com.github.rogerioja89.dto.SimulacaoRequestDTO;
 import com.github.rogerioja89.dto.SimulacaoResponseDTO;
 import com.github.rogerioja89.entity.Produto;
 import com.github.rogerioja89.entity.Simulacao;
+import com.github.rogerioja89.exception.NegocioException;
 import com.github.rogerioja89.mapper.SimulacaoMapper;
 import com.github.rogerioja89.repository.ProdutoRepository;
 import com.github.rogerioja89.repository.SimulacaoRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -37,13 +35,8 @@ public class SimulacaoService {
     public SimulacaoResponseDTO simular(SimulacaoRequestDTO request) {
         Produto produto = produtoRepository
             .findElegivel(request.getTipoProduto(), request.getValor(), request.getPrazoMeses())
-            .orElseThrow(() -> new WebApplicationException(
-                // 422 Unprocessable Entity: dados válidos, mas nenhum produto atende os critérios informados.
-                Response.status(422)
-                        .type(MediaType.APPLICATION_JSON)
-                        .entity("{\"erro\": \"Nenhum produto elegível encontrado para os parâmetros informados\"}")
-                        .build()
-            ));
+            // 422 Unprocessable Entity: dados válidos, mas nenhum produto atende os critérios informados.
+            .orElseThrow(() -> new NegocioException(422, "Nenhum produto elegível encontrado para os parâmetros informados"));
 
         BigDecimal valorFinal = calcularValorFinal(
             request.getValor(), produto.getRentabilidadeAnual(), request.getPrazoMeses()

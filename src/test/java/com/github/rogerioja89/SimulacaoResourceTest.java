@@ -52,10 +52,11 @@ class SimulacaoResourceTest {
         .when()
             .post("/simulacoes")
         .then()
-            .statusCode(422);
+            .statusCode(422)
+            .body("erro", notNullValue());
     }
 
-    // Campos inválidos devem retornar HTTP 400 (tratado pelo Hibernate Validator)
+    // Campos inválidos devem retornar HTTP 400 com campo "erro" descrevendo as violações
     @Test
     void deveRetornar400QuandoCamposInvalidos() {
         given()
@@ -71,17 +72,19 @@ class SimulacaoResourceTest {
         .when()
             .post("/simulacoes")
         .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("erro", notNullValue());
     }
 
-    // clienteId ausente no GET deve retornar 400
+    // clienteId ausente no GET deve retornar 400 com campo "erro"
     @Test
     void deveRetornar400QuandoClienteIdAusente() {
         given()
         .when()
             .get("/simulacoes")
         .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("erro", equalTo("O parâmetro clienteId é obrigatório"));
     }
 
     // Após criar uma simulação, o histórico deve conter o registro
@@ -199,7 +202,8 @@ class SimulacaoResourceTest {
         .when()
             .post("/simulacoes")
         .then()
-            .statusCode(422);
+            .statusCode(422)
+            .body("erro", notNullValue());
 
         // Acima do máximo de todos os produtos CDB (CDB Poupança Plus tem max R$ 500.000,00)
         given()
@@ -215,6 +219,7 @@ class SimulacaoResourceTest {
         .when()
             .post("/simulacoes")
         .then()
-            .statusCode(422);
+            .statusCode(422)
+            .body("erro", notNullValue());
     }
 }
