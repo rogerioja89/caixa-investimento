@@ -14,8 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,6 +28,9 @@ public class SimulacaoService {
 
     @Inject
     SimulacaoMapper simulacaoMapper;
+
+    @Inject
+    CalculadoraJuros calculadoraJuros;
 
     // @Transactional: leitura do produto e gravação da simulação devem ocorrer na mesma transação.
     @Transactional
@@ -49,7 +50,7 @@ public class SimulacaoService {
 
         Log.infof("Produto selecionado: %s", produto.getNome());
 
-        BigDecimal valorFinal = calcularValorFinal(
+        BigDecimal valorFinal = calculadoraJuros.calcularValorFinal(
             request.getValor(), produto.getRentabilidadeAnual(), request.getPrazoMeses()
         );
 
@@ -79,11 +80,4 @@ public class SimulacaoService {
             .toList();
     }
 
-    // Juros compostos mensais: valorFinal = valor × (1 + rentabilidadeAnual/12) ^ prazoMeses
-    private BigDecimal calcularValorFinal(BigDecimal valor, BigDecimal rentabilidadeAnual, int prazoMeses) {
-        BigDecimal taxaMensal = rentabilidadeAnual.divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
-        // DECIMAL128 mantém precisão suficiente durante a exponenciação com BigDecimal.
-        BigDecimal fator = BigDecimal.ONE.add(taxaMensal).pow(prazoMeses, MathContext.DECIMAL128);
-        return valor.multiply(fator).setScale(2, RoundingMode.HALF_UP);
-    }
 }

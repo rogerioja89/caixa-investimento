@@ -1,6 +1,7 @@
 # caixa-investimento
 
-API REST de simulação de investimentos da CAIXA. Permite simular o valor final de um investimento com base em produtos parametrizados em banco de dados, calculando juros compostos e persistindo o histórico por cliente.
+API REST de simulação de investimentos da CAIXA. Permite simular o valor final de um investimento com base em 
+produtos parametrizados em banco de dados, calculando juros compostos e persistindo o histórico por cliente.
 
 ---
 
@@ -17,6 +18,7 @@ API REST de simulação de investimentos da CAIXA. Permite simular o valor final
 | H2 | — | Banco de dados em memória (testes) |
 | JBoss Logging | — | Logging nativo do Quarkus |
 | REST Assured | — | Testes de integração da API |
+| Mockito | — | Mocks para testes unitários |
 
 ---
 
@@ -53,13 +55,19 @@ src/main/java/com/github/rogerioja89/
 │   └── SimulacaoRepository.java  ← Busca histórico por clienteId
 │
 ├── service/
-│   └── SimulacaoService.java     ← Regras de negócio, cálculo e logging
+│   ├── CalculadoraJuros.java     ← Cálculo de juros compostos (isolado e testável)
+│   └── SimulacaoService.java     ← Regras de negócio e logging
 │
 └── resource/
     └── SimulacaoResource.java    ← Endpoints REST
 
 src/test/java/com/github/rogerioja89/
-└── SimulacaoResourceTest.java    ← 9 testes de integração com H2
+├── SimulacaoResourceTest.java    ← 9 testes de integração com H2
+├── mapper/
+│   └── ProdutoMapperTest.java    ← 2 testes unitários do ProdutoMapper
+└── service/
+    ├── CalculadoraJurosTest.java ← 4 testes unitários da fórmula de juros
+    └── SimulacaoServiceTest.java ← 3 testes unitários do SimulacaoService (Mockito)
 ```
 
 ---
@@ -77,7 +85,8 @@ src/test/java/com/github/rogerioja89/
 ./mvnw quarkus:dev
 ```
 
-A API sobe em `http://localhost:8080`. O banco SQLite (`investimentos.db`) é criado automaticamente na raiz do projeto na primeira execução.
+A API sobe em `http://localhost:8080`. O banco SQLite (`investimentos.db`) 
+é criado automaticamente na raiz do projeto na primeira execução.
 
 ### Rodar os testes
 
@@ -298,7 +307,7 @@ Todos os erros retornam o mesmo formato JSON:
 
 ## Testes
 
-9 testes de integração em `SimulacaoResourceTest.java`:
+### Integração — `SimulacaoResourceTest.java` (9 testes, H2 em memória)
 
 | Teste | O que valida |
 |-------|-------------|
@@ -311,6 +320,32 @@ Todos os erros retornam o mesmo formato JSON:
 | `deveRetornarListaVaziaParaClienteSemHistorico` | Cliente sem histórico retorna 200 com `[]` |
 | `deveAceitarSimulacaoNosLimitesDoRangeDoProduto` | Valor e prazo exatamente nos limites são aceitos |
 | `deveRetornar422QuandoValorForaDoRangeDoProduto` | Abaixo do mínimo e acima do máximo retornam 422 |
+
+### Unitários — sem contêiner, execução instantânea
+
+**`CalculadoraJurosTest.java`** (4 testes)
+
+| Teste | O que valida |
+|-------|-------------|
+| `deveCalcularJurosCompostosCorretamente` | 12% a.a., R$ 10.000, 12 meses → R$ 11.268,25 |
+| `deveRetornarValorIgualParaPrazoZero` | Prazo zero não altera o valor investido |
+| `deveAplicarArredondamentoHalfUp` | 10% a.a., R$ 5.000, 12 meses → R$ 5.523,57 |
+| `deveCalcularComPrazoLongo` | Prazo de 60 meses retorna valor maior que o investido |
+
+**`ProdutoMapperTest.java`** (2 testes)
+
+| Teste | O que valida |
+|-------|-------------|
+| `deveMappearProdutoParaDTO` | Todos os campos de `Produto` são mapeados para `ProdutoResponseDTO` |
+| `deveMappearTodosOsCamposCorretamente` | Segundo produto com dados distintos — sem campo esquecido |
+
+**`SimulacaoServiceTest.java`** (3 testes com Mockito)
+
+| Teste | O que valida |
+|-------|-------------|
+| `deveRetornar422QuandoNenhumProdutoElegivel` | `Optional.empty()` do repositório lança `NegocioException(422)` |
+| `deveChamarCalculadoraComOsParametrosCorretos` | `CalculadoraJuros` recebe exatamente valor, rentabilidade e prazo do produto |
+| `devePersistirSimulacaoAposCalculo` | `SimulacaoRepository.persist()` é chamado após o cálculo |
 
 ---
 
