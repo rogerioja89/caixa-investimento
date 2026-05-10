@@ -5,7 +5,6 @@ import com.github.rogerioja89.dto.SimulacaoResponseDTO;
 import com.github.rogerioja89.entity.Produto;
 import com.github.rogerioja89.entity.Simulacao;
 import com.github.rogerioja89.exception.NegocioException;
-import com.github.rogerioja89.mapper.ProdutoMapper;
 import com.github.rogerioja89.mapper.SimulacaoMapper;
 import com.github.rogerioja89.repository.ProdutoRepository;
 import com.github.rogerioja89.repository.SimulacaoRepository;
@@ -17,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,14 +79,8 @@ class SimulacaoServiceTest {
         when(calculadoraJuros.calcularValorFinal(any(), any(), anyInt()))
             .thenReturn(valorFinal);
 
-        Simulacao simulacaoMock = new Simulacao(
-            123L, "CDB Caixa 2026", "CDB",
-            new BigDecimal("10000.00"), 12, new BigDecimal("0.12"),
-            valorFinal, LocalDateTime.now()
-        );
-        SimulacaoResponseDTO responseMock = mock(SimulacaoResponseDTO.class);
         when(simulacaoMapper.toResponseDTO(any(Simulacao.class), any(Produto.class)))
-            .thenReturn(responseMock);
+            .thenReturn(mock(SimulacaoResponseDTO.class));
 
         simulacaoService.simular(requestMock);
 
